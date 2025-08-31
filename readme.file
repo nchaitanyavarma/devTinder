@@ -1,0 +1,33 @@
+
+routing patterns
+
+| **Pattern**             | **Matches**                     | **Does NOT Match**  | **Example Explanation**     |                             |
+| ----------------------- | ------------------------------- | ------------------- | --------------------------- | --------------------------- |
+| `/abc`                  | `/abc`                          | `/ab`, `/abcd`      | Exact match only            |                             |
+| `/ab?c`                 | `/abc`, `/ac`                   | `/abbc`, `/abdc`    | `b` is optional             |                             |
+| `/ab+c`                 | `/abc`, `/abbc`, `/abbbc`       | `/ac`, `/abcd`      | One or more `b`s            |                             |
+| `/ab*cd`                | `/abcd`, `/abXYZcd`, `/ab123cd` | `/abxcdz`           | Anything in place of `*`    |                             |
+| `/ab(cd)?e`             | `/abe`, `/abcde`                | `/abde`, `/abccde`  | Optional group `(cd)`       |                             |
+| `/a(bc)+d`              | `/abcd`, `/abcbcd`, `/abcbcbcd` | `/ad`               | One or more `bc`            |                             |
+| `/xy*z`                 | `/xz`, `/xyz`, `/xyyyz`         | `/xaz`              | `*` means zero or more `y`s |                             |
+| \`/ab                   | cd\` (regex style)              | `/ab`, `/cd`        | `/abcd`                     | Matches either `ab` or `cd` |
+| `['/apple', '/banana']` | `/apple`, `/banana`             | `/grape`            | Multiple static routes      |                             |
+| `/user/:id`             | `/user/123`, `/user/abc`        | `/user/`            | Named param (`id`)          |                             |
+| `/user/:id/:postId`     | `/user/12/99`                   | `/user/12`          | Multiple params             |                             |
+| `/user/:id?`            | `/user/123`, `/user`            | `/user/123/456`     | Optional param              |                             |
+| `/user/*`               | `/user/anything/here`           | `/customer/abc`     | Wildcard after `/user/`     |                             |
+| `/.*fly$/` (regex)      | `/butterfly`, `/dragonfly`      | `/flyer`, `/flying` | Regex: ends with `fly`      |                             |
+
+
+? → optional
+
++ → one or more
+
+* → zero or more
+
+() → grouping
+
+:param → dynamic parameter
+
+Regex (/^...$/) → full regex power
+
