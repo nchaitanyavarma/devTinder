@@ -5,11 +5,11 @@ const signUpValidation = (data)=>{
     const {firstName,emailId,password} = data
 
     if(!firstName){
-        throw new Error("Enter valid FirstName")
+        throw new Error(" Please enter valid FirstName")
     }else if (!validator.isEmail(emailId)){
-        throw new Error("Enter Valid Email")
+        throw new Error(" Please enter Valid Email")
     }else if (!validator.isStrongPassword(password)){
-        throw new Error("Enter Valid Password")
+        throw new Error(" Please enter Valid Password")
     }
 }
 module.exports = signUpValidation

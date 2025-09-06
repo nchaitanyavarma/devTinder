@@ -5,6 +5,9 @@ const signUpValidation = require("./utils/validators")
 const bcrypt = require("bcrypt")
 const cookieparser = require("cookie-parser")
 const jwt = require("jsonwebtoken")
+const userAuth = require("./middlewares/auth")
+const getJwt = require("./models/user")
+const validatePassword = require("./models/user")
 
 const app = express()
 app.use(express.json())
@@ -30,11 +33,14 @@ app.post("/login",async(req,res)=>{
     if(!user){
         throw new Error("Invalid Credentials")
     }
-    const isPasswordValid = await bcrypt.compare(password,user.password)
+    const isPasswordValid = await user.validatePassword(password)
     if(isPasswordValid){
-        const token = await jwt.sign({_id : user._id},"DEV@Tinder$777")
-        res.cookie("token", token)
+        const token = await user.getJwt()
+        res.cookie("token", token,{
+            expires: new Date(Date.now() + 7 * 3600000), 
+        })
         res.send("Login Successfull")
+        
     }else{
          throw new Error("Invalid Credentials")
     }
@@ -43,76 +49,75 @@ app.post("/login",async(req,res)=>{
     }
 })
 
-app.get("/profile",async(req,res)=>{
+app.get("/profile",userAuth,async(req,res)=>{
   try{
-    const cookies =  req.cookies
-    const {token} = cookies
-    if(!token){
-        throw new Error("Invalid Token")
-    }
-    const decodedToken = await jwt.verify(token,"DEV@Tinder$777")
-    const {_id} = decodedToken
-    const user = await User.findById(_id)
-    if(!user){
-        throw new Error("User is Invalid")
-    }
+    const user = req.user
     res.send(user)
     }catch(err){
         res.status(400).send("Error : " + err.message)
     }
 })
 
-app.delete("/user", async(req,res)=>{
-    const user = req.body.userId
-    try{
-        const users= await User.findByIdAndDelete(user)
-        res.send(users)
+app.post("/sendConnectionRequest",userAuth,async(req,res)=>{
+  try{
+    const user = req.user
+    res.send( user?.firstName + " Connection request sent!")
     }catch(err){
-        res.status(400).send("Error in deleting user" + err.message)
+        res.status(400).send("Error : " + err.message)
     }
 })
 
-app.patch("/user/:userId",async(req,res)=>{
-    const userId = req.params?.userId
-    const data = req.body
-    const allowedUpdatedFields = ["photo","about","skills","age","gender"]
-    const isAllowedUpdate = Object.keys(data).every(item=>allowedUpdatedFields.includes(item))
-    try{
-        if(!isAllowedUpdate){
-            throw new Error("Invalid updates")
-        }
-        const users = await User.findByIdAndUpdate(userId,data,{
-            runValidators:true,
-        })
-        res.send(users)
-    }catch(err){
-        res.status(400).send("Error in updating user" + err.message)
-    }
-})
+// app.delete("/user", async(req,res)=>{
+//     const user = req.body.userId
+//     try{
+//         const users= await User.findByIdAndDelete(user)
+//         res.send(users)
+//     }catch(err){
+//         res.status(400).send("Error in deleting user" + err.message)
+//     }
+// })
 
-app.get("/user",async(req,res)=>{
-    const userEmail = req.body.emailId
-    try{
-        const users = await User.find({emailId:userEmail})
-        if(users.length === 0){
-            res.status(400).send("No user found")
-        }else{
-            res.send(users)
-        }
-    }catch(err){
-        res.status(400).send("Error in fetching user" + err.message)    
-    }
+// app.patch("/user/:userId",async(req,res)=>{
+//     const userId = req.params?.userId
+//     const data = req.body
+//     const allowedUpdatedFields = ["photo","about","skills","age","gender"]
+//     const isAllowedUpdate = Object.keys(data).every(item=>allowedUpdatedFields.includes(item))
+//     try{
+//         if(!isAllowedUpdate){
+//             throw new Error("Invalid updates")
+//         }
+//         const users = await User.findByIdAndUpdate(userId,data,{
+//             runValidators:true,
+//         })
+//         res.send(users)
+//     }catch(err){
+//         res.status(400).send("Error in updating user" + err.message)
+//     }
+// })
 
-})
+// app.get("/user",async(req,res)=>{
+//     const userEmail = req.body.emailId
+//     try{
+//         const users = await User.find({emailId:userEmail})
+//         if(users.length === 0){
+//             res.status(400).send("No user found")
+//         }else{
+//             res.send(users)
+//         }
+//     }catch(err){
+//         res.status(400).send("Error in fetching user" + err.message)    
+//     }
 
-app.get("/feed",async(req,res)=>{
-    try{
-        const users = await User.find({})
-        res.send(users)
-    }catch(err){
-        res.status(400).send("Error in fetching user" + err.message)    
-    }   
-})
+// })
+
+// app.get("/feed",async(req,res)=>{
+//     try{
+//         const users = await User.find({})
+//         res.send(users)
+//     }catch(err){
+//         res.status(400).send("Error in fetching user" + err.message)    
+//     }   
+// })
 
 connectDB()
     .then(()=>{
